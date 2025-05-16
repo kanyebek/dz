@@ -5,7 +5,7 @@ from products.models import Category, Product, Review
 from .serializers import (
     CategorySerializer, CategoryDetailSerializer,
     ProductSerializer, ProductDetailSerializer, ProductReviewSerializer,
-    ReviewSerializer, ReviewDetailSerializer
+    ReviewSerializer, ReviewDetailSerializer, CategoryValidateSerializer, ProductValidateSerializer, ReviewValidateSerializer
 )
 
 @api_view(['GET', 'POST'])
@@ -16,7 +16,10 @@ def categories_list_api_view(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        name = request.data.get('name')
+        validator = CategoryValidateSerializer(data=request.data)
+        if not validator.is_valid():
+            return Response({'error': validator.errors}, status=status.HTTP_400_BAD_REQUEST)
+        name = request.validated_data.get('name')
         if not name:
             return Response({'error': 'Name is required'}, status=status.HTTP_400_BAD_REQUEST)
         category = Category.objects.create(name=name)
@@ -36,7 +39,9 @@ def category_detail_api_view(request, id):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        name = request.data.get('name')
+        validator = CategoryValidateSerializer(data=request.data)
+        validator.is_valid(raise_exception=True)
+        name = request.validated_data.get('name')
         if not name:
             return Response({'error': 'Name is required'}, status=status.HTTP_400_BAD_REQUEST)
         category.name = name
@@ -57,24 +62,18 @@ def products_list_api_view(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        title = request.data.get('title')
-        description = request.data.get('description')
-        price = request.data.get('price')
-        category_id = request.data.get('category')
-
-        if not all([title, description, price, category_id]):
-            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            category = Category.objects.get(id=category_id)
-        except Category.DoesNotExist:
-            return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
+        validator = ProductValidateSerializer(data =request.data)
+        validator.is_valid(raise_exception=True)
+        title = request.validated_data.get('title')
+        description = request.validated_data.get('description')
+        price = request.validated_data.get('price')
+        category_id = request.validated_data.get('category_id')
 
         product = Product.objects.create(
             title=title,
             description=description,
             price=price,
-            category=category
+            category_id=category_id
         )
         serializer = ProductDetailSerializer(product)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -92,23 +91,17 @@ def product_detail_api_view(request, id):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        title = request.data.get('title')
-        description = request.data.get('description')
-        price = request.data.get('price')
-        category_id = request.data.get('category')
-
-        if not all([title, description, price, category_id]):
-            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            category = Category.objects.get(id=category_id)
-        except Category.DoesNotExist:
-            return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
+        validator = ProductValidateSerializer(data = request.data)
+        validator.is_valid(raise_exception=True)
+        title = request.validated_data.get('title')
+        description = request.validated_data.get('description')
+        price = request.validated_data.get('price')
+        category_id = request.validated_data.get('category_id')
 
         product.title = title
         product.description = description
         product.price = price
-        product.category = category
+        product.category_id = category_id
         product.save()
 
         serializer = ProductDetailSerializer(product)
@@ -134,18 +127,13 @@ def reviews_list_api_view(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        text = request.data.get('text')
-        product_id = request.data.get('product')
+        validator = ReviewValidateSerializer(data=request.data)
+        validator.is_valid(raise_exception=True)
+        text = request.validated_data.get('text')
+        product_id = request.validated_data.get('product_id')
+        stars = request.validated_data.get('stars')
 
-        if not all([text, product_id]):
-            return Response({'error': 'Text and product are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            product = Product.objects.get(id=product_id)
-        except Product.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        review = Review.objects.create(text=text, product=product)
+        review = Review.objects.create(text=text, product_id=product_id, stars=stars)
         serializer = ReviewDetailSerializer(review)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -162,11 +150,11 @@ def review_detail_api_view(request, id):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        text = request.data.get('text')
-        product_id = request.data.get('product')
-
-        if not all([text, product_id]):
-            return Response({'error': 'Text and product are required'}, status=status.HTTP_400_BAD_REQUEST)
+        validator = ReviewValidateSerializer(data=request.data)
+        validator.is_valid(raise_exception=True)
+        text = request.validated_data.get('text')
+        product_id = request.validated_data.get('product_id')
+        stars = request.validated_data.get('stars')
 
         try:
             product = Product.objects.get(id=product_id)
@@ -174,7 +162,8 @@ def review_detail_api_view(request, id):
             return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
 
         review.text = text
-        review.product = product
+        review.product_id = product_id
+        review.stars = stars
         review.save()
         serializer = ReviewDetailSerializer(review)
         return Response(serializer.data)
