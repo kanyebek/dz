@@ -13,5 +13,5 @@ urlpatterns = [
     path('products/<int:id>/', product_detail_api_view),
     path('products/reviews/', products_with_reviews__api_view),
     path('reviews/', reviews_list_api_view),
-    path('reviews/<int:id>/', review_detail_api_view),
+    path('reviews/<int:id>/', review_detail_api_view),  
 ]
