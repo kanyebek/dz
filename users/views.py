@@ -8,7 +8,6 @@ from rest_framework.authtoken.models import Token
 from .serializers import UserSerializer, UserAuthSerializer
 from .models import ConfirmationCode
 
-# Create your views here.
 
 @api_view(['POST'])
 def register(request):

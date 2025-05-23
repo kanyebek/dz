@@ -16,11 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from products.views import ReviewViewSet
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/users/', include('users.urls')),
     path('api/v1/products/', include('products.urls')),
+    path('reviews/', ReviewViewSet.as_view({'get': 'list', 'post': 'create'})),
+    path('reviews/<int:id>/', ReviewViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
 ]
 
