@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from products.views import ReviewViewSet
+from djangorest import swagger
 
 
 urlpatterns = [
@@ -27,3 +28,5 @@ urlpatterns = [
     path('reviews/<int:id>/', ReviewViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
 ]
 
+
+urlpatterns += swagger.urlpatterns
